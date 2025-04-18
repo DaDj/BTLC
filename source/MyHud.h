@@ -42,5 +42,6 @@ public:
 	static float DrawMoneyInfo();
 	static void DrawRadar();
 	static void DrawZoneText();
+	static void 
 };
 

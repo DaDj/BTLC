@@ -163,10 +163,16 @@ float MyHud::DrawMoneyInfo()
 	{
 		PosY += 15.0f;
 		if (MoneyDelta > 0)
+		{
 			sprintf(string, " + $%d", MoneyDelta);
+			CFont::SetColor(CRGBA::CRGBA(80, 150, 80, MoneyAlpha));
+		}
 		else
+		{
 			sprintf(string, " - $%d", abs(MoneyDelta));
-
+			CFont::SetColor(CRGBA::CRGBA(150, 80, 80, MoneyAlpha));
+		}
+			
 		CFont::PrintString(SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_TOP(80.0f), string);
 	}
 
