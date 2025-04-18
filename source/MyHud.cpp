@@ -23,6 +23,9 @@ int MyHud::MoneyDeltaAlpha = 0;
 int MyHud::MoneyShowTime = 0;
 int MyHud::MoneyFadeTimer = 0;
 int MyHud::MoneyMoveTimer = 0;
+int MyHud::PrevAmmo = 0;
+HUDSHOWSTATE MyHud::WeaponState = STATE_OFF;
+int MyHud::WeaponTimer = 0;
 
 CSprite2d MyHud::Sprites[6];
 
@@ -33,6 +36,7 @@ void MyHud::Implement()
 	patch::RedirectCall(0x5BD76F, MyHud::Init);
 	patch::RedirectCall(0x53BBA2, MyHud::Shutdown);
 	patch::RedirectCall(0x58D542, MyHud::DrawZoneText);
+	
 }
 
 void MyHud::Init()
@@ -65,15 +69,16 @@ void MyHud::Shutdown()
 void MyHud::DrawPlayerInfo()
 {
 	CPlayerPed* Playa = FindPlayerPed(-1);;
-	DrawMoneyInfo();
+	float Offset = DrawMoneyInfo();
+	DrawWeaponInfo(Offset);
 }
 
 float MyHud::DrawMoneyInfo()
 {
 	CPlayerInfo playa = CWorld::Players[0];
 	int NewMoney = playa.m_nMoney;
-	float PosY = 15.0f;
-	int PosMoneyChange = 15.0f;
+	float PosY = 1;
+	int PosMoneyChange = 1;
 	char string[40];
 
 	if (NewMoney != prevMoney || KeyPressed(VK_TAB))
@@ -97,7 +102,7 @@ float MyHud::DrawMoneyInfo()
 	case STATE_FADE_IN:
 		MoneyState = STATE_ON;
 		MoneyAlpha = 255;
-		PosY = 15.0f;
+		PosY = 1;
 		break;
 	case STATE_FADE_OUT:
 		MoneyFadeTimer += CTimer::ms_fTimeStep * 0.02 - 1000.0f;
@@ -129,7 +134,7 @@ float MyHud::DrawMoneyInfo()
 			MoneyDelta = 0;
 
 		MoneyAlpha = 255;
-		PosY = 15.0f;
+		PosY = 1;
 		break;
 	case STATE_OFF:
 		MoneyAlpha = 0;
@@ -161,7 +166,7 @@ float MyHud::DrawMoneyInfo()
 
 	if (MoneyDelta != 0)
 	{
-		PosY += 15.0f;
+		PosY += 1;
 		if (MoneyDelta > 0)
 		{
 			sprintf(string, " + $%d", MoneyDelta);
@@ -263,3 +268,162 @@ void MyHud::DrawZoneText()
 	}
 	
 }
+
+void MyHud::DrawWeaponInfo(float Offset)
+{
+	CPed* Playa = FindPlayerPed(-1);;
+	int Alpha = 0;
+	eTaskType ActiveTask = Playa->m_pIntelligence->m_TaskMgr.GetActiveTask()->GetId();
+	eCamMode CamMode = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode;
+	
+	if (m_LastWeapon != Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_eWeaponType || ActiveTask == TASK_SIMPLE_USE_GUN 
+		|| Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_nState == 1 || CamMode == MODE_AIMWEAPON || KeyPressed(VK_TAB) 
+		|| Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_nAmmoTotal != PrevAmmo)
+	{
+		PrevAmmo = Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_nAmmoTotal;
+		m_LastWeapon = Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_eWeaponType;
+		WeaponTimer = 0;
+		if (WeaponState == STATE_ON)
+			WeaponState = STATE_ON;
+		else
+			WeaponState = STATE_FADE_IN;
+	}
+		
+	switch (WeaponState)
+	{
+	case STATE_OFF:
+		Alpha = 0;
+		break;
+	case STATE_ON:
+		WeaponTimer += CTimer::ms_fTimeStep * 0.02 * 1000.0;
+		if (WeaponTimer > 5000)
+		{
+			WeaponState = STATE_FADE_OUT;
+			m_WeaponFadeTimer = 600;
+		}
+		Alpha = 255;
+		break;
+	case STATE_FADE_IN:
+		m_WeaponFadeTimer += CTimer::ms_fTimeStep * 0.02 * 1000.0;
+		Alpha = m_WeaponFadeTimer / 400.0f * 255.0f;
+		if (m_WeaponFadeTimer > 400)
+		{
+			m_WeaponFadeTimer = 0;
+			WeaponTimer = 0;
+			WeaponState = STATE_ON;
+			Alpha = 255;
+		}
+		break;
+	case STATE_FADE_OUT:
+		m_WeaponFadeTimer += CTimer::ms_fTimeStep * 0.02 * -1000.0;
+		if (m_WeaponFadeTimer < 0.0)
+		{
+			m_WeaponFadeTimer = 0;
+			WeaponState = STATE_OFF;
+		}
+		Alpha = m_WeaponFadeTimer / 600.0f * 255.0f;
+		break;
+	case STATE_MOVE_Y:
+		break;
+	default:
+		break;
+	}
+
+
+	DrawWeaponAmmo(Alpha, Offset);
+	DrawWeaponIcon(Alpha, Offset);
+}
+
+void MyHud::DrawWeaponAmmo(float Alpha, float Offset)
+{
+	CPlayerPed* Playa = FindPlayerPed(-1);
+	eWeaponType CurrWeapon = Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_eWeaponType;
+	int AmmoInClip = Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_nAmmoInClip;
+	int AmmoTotal = Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_nAmmoTotal - AmmoInClip;
+	int MaxAmmo = CWeaponInfo::GetWeaponInfo(CurrWeapon, 1)->m_nAmmoClip;
+
+	if (CurrWeapon < 15 || CurrWeapon == WEAPONTYPE_PARACHUTE || CurrWeapon == WEAPONTYPE_NIGHTVISION
+		|| CurrWeapon == WEAPONTYPE_DETONATOR || CurrWeapon == WEAPONTYPE_INFRARED)
+		return;
+
+
+
+	int PosY = 50.0f + Offset * 35.0f; //Offset is defined as an factor between 0 and 1
+
+	char Thestring[40];
+	CFont::SetProportional(true);
+	CFont::SetBackground(false, false);
+	CFont::SetFontStyle(FONT_PRICEDOWN);
+	CFont::SetOrientation(ALIGN_RIGHT);
+	CFont::SetEdge(1);
+	CFont::SetScale(SCREEN_MULTIPLIER(1.0f), SCREEN_MULTIPLIER(2.0f));
+	CFont::SetDropColor(CRGBA::CRGBA(30, 30, 30, Alpha));
+
+	if (MaxAmmo > 1 && AmmoInClip < 1000)
+	{
+		CFont::SetColor(CRGBA::CRGBA(100, 100, 100, Alpha));
+		sprintf(Thestring, "%d", AmmoInClip);
+		CFont::PrintString(SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_TOP(PosY), Thestring);
+
+		CFont::SetColor(CRGBA::CRGBA(200, 200, 200, Alpha));
+		sprintf(Thestring, "%d", AmmoTotal);
+		CFont::PrintString(SCREEN_COORD_RIGHT(80.0f), SCREEN_COORD_TOP(PosY), Thestring);
+	}
+	else
+	{
+		CFont::SetColor(CRGBA::CRGBA(100, 100, 100, Alpha));
+		sprintf(Thestring, "%d", AmmoTotal);
+		CFont::PrintString(SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_TOP(PosY), Thestring);
+	}
+
+}
+
+void MyHud::DrawWeaponIcon(float Alpha, float Offset)
+{
+	float IcWidth = 130.0f;
+	float IcHeight = 130.0f;
+	int PosY = 0.0f;
+	CPlayerPed* Playa = FindPlayerPed(-1);
+	CRect Icon;
+	int WeaponModel = CWeaponInfo::GetWeaponInfo(Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_eWeaponType, 1)->m_nModelId;
+
+	if (WeaponModel <= 0)
+	{
+		IcWidth = IcHeight * 2;
+		Icon = CRect(SCREEN_COORD_RIGHT(IcWidth + 30.0f), SCREEN_COORD_TOP(150.0f), SCREEN_COORD_RIGHT(30.0f), SCREEN_COORD_TOP(IcHeight + 150.0f));
+		CHud::Sprites[0].Draw(Icon, CRGBA::CRGBA(255, 255, 255, Alpha));
+	}
+	else
+	{
+		CBaseModelInfo* Model = CModelInfo::GetModelInfo(WeaponModel);
+		TxdDef* txd = CTxdStore::ms_pTxdPool->GetAt(Model->m_nTxdIndex);
+		if (txd && txd->m_pRwDictionary)
+		{
+			RwTexture* IconTex = RwTexDictionaryFindNamedTexture(txd->m_pRwDictionary, "icon");
+			if (!IconTex)
+				IconTex = RwTexDictionaryFindHashNamedTexture(txd->m_pRwDictionary, CKeyGen::AppendStringToKey(Model->m_nKey, "ICON"));
+
+			if (IconTex)
+			{
+				CTxdStore::PushCurrentTxd();
+				if (IconTex->raster->height == IconTex->raster->width)
+					IcWidth = IcHeight;
+				else
+					IcWidth = IcHeight * 2;
+
+
+				PosY = 115.0f + Offset * 35.0f;
+				Icon = CRect(SCREEN_COORD_RIGHT(IcWidth + 20.0f), SCREEN_COORD_TOP(PosY), SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_TOP(IcHeight + PosY));
+
+				CSprite2d IconSprite = CSprite2d::CSprite2d();
+				CTxdStore::SetCurrentTxd(Model->m_nTxdIndex);
+				IconSprite.SetTexture(IconTex->name);
+				IconSprite.Draw(Icon, CRGBA::CRGBA(255, 255, 255, Alpha));
+				CTxdStore::PopCurrentTxd();
+				IconSprite.Delete();
+			}
+		}
+	}
+
+}
+

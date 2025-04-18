@@ -8,6 +8,9 @@
 #include "CWorld.h"
 #include "CTheScripts.h"
 #include "CCamera.h"
+#include "CKeyGen.h"
+#include "CSprite.h"
+
 
 enum HUDSHOWSTATE 
 {
@@ -31,6 +34,9 @@ public:
 	static int MoneyShowTime;
 	static int MoneyFadeTimer;
 	static int MoneyMoveTimer;
+	static HUDSHOWSTATE WeaponState;
+	static int PrevAmmo;
+	static int WeaponTimer;
 
 	static CSprite2d Sprites[6];
 	const static  char* SpritesNames[6];
@@ -42,6 +48,9 @@ public:
 	static float DrawMoneyInfo();
 	static void DrawRadar();
 	static void DrawZoneText();
-	static void 
+	static void DrawWeaponInfo(float Offset);
+	static void DrawWeaponAmmo(float Alpha, float Offset);
+	static void DrawWeaponIcon(float Alpha, float Offset);
+
 };
 
