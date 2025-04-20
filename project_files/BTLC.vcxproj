@@ -85,7 +85,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level1</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_USE_MATH_DEFINES;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;DEBUG;GTASA;PLUGIN_SGV_10US;RW;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\source;$(PLUGIN_SDK_DIR)\shared;$(PLUGIN_SDK_DIR)\shared\game;$(PLUGIN_SDK_DIR)\plugin_SA;$(PLUGIN_SDK_DIR)\plugin_SA\game_SA;$(PLUGIN_SDK_DIR)\plugin_SA\game_SA\rw;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -107,9 +107,13 @@
   <ItemGroup>
     <ClCompile Include="..\source\Main.cpp" />
     <ClCompile Include="..\source\MyHud.cpp" />
+    <ClCompile Include="..\source\MyObjectData.cpp" />
+    <ClCompile Include="..\source\MyRadar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\MyHud.h" />
+    <ClInclude Include="..\source\MyObjectData.h" />
+    <ClInclude Include="..\source\MyRadar.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

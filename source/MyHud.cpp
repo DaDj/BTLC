@@ -2,8 +2,6 @@
 
 using namespace plugin;
 
-MyHud HudNew;
-
 const char* MyHud::SpritesNames[6] = {
  "radarringfront",
   "radarringback",
@@ -26,7 +24,39 @@ int MyHud::MoneyMoveTimer = 0;
 int MyHud::PrevAmmo = 0;
 HUDSHOWSTATE MyHud::WeaponState = STATE_OFF;
 int MyHud::WeaponTimer = 0;
+HUDSHOWSTATE MyHud::VehicleNameState = STATE_OFF;
 
+
+
+
+float MyHud::MoneyPosX = 20.0f;
+float MyHud::MoneyPosY = 30.0f;
+float MyHud::MoneySizeX = 1.0f;
+float MyHud::MoneySizeY = 2.0f;
+float MyHud::WeaponAmmoPosX = 20.0f;
+float MyHud::WeaponAmmoPosY = 50.0f;
+float MyHud::WeaponAmmoSizeX = 1.0f;
+float MyHud::WeaponAmmoSizeY = 2.0f;
+float MyHud::WeaponIconPosX = 30.0f;
+float MyHud::WeaponIconPosY = 120.0f;
+float MyHud::WeaponIconSize = 130.0f;
+float MyHud::RadarPosX = 90.0f;
+float MyHud::RadarPosY = 80.0f;
+float MyHud::RadarRadius = 95.0;
+float MyHud::RadarRadiusOut = 1.16 * RadarRadius;
+float MyHud::RadarRadiusSmall = 95.0f;
+float MyHud::RadarRadiusBig = 130.0f;
+float MyHud::ZoneSizeX = 1.3f;
+float MyHud::ZoneSizeY = 2.5f;
+float MyHud::ZonePosX = 50.0f;
+float MyHud::ZonePosY = 70.0f;
+float MyHud::VehicleNamePosX = 50.0f;
+float MyHud::VehicleNamePosY = 130.0f;
+float MyHud::VehicleNameSizeX = 1.3f;
+float MyHud::VehicleNameSizeY = 2.5f;
+
+float MyHud::UnitCircleX[NUM_STEPSCIRCLE];
+float MyHud::UnitCircleY[NUM_STEPSCIRCLE];
 CSprite2d MyHud::Sprites[6];
 
 
@@ -36,7 +66,8 @@ void MyHud::Implement()
 	patch::RedirectCall(0x5BD76F, MyHud::Init);
 	patch::RedirectCall(0x53BBA2, MyHud::Shutdown);
 	patch::RedirectCall(0x58D542, MyHud::DrawZoneText);
-	
+	patch::RedirectCall(0x58FC53, MyHud::DrawRadar);
+	patch::RedirectCall(0x58FBE9, MyHud::DrawVehicleName);
 }
 
 void MyHud::Init()
@@ -53,6 +84,8 @@ void MyHud::Init()
 		Sprites[i].SetTexture((char*)SpritesNames[i]);
 
 	CTxdStore::PopCurrentTxd();
+
+	InitUnitCircle();
 }
 
 void MyHud::Shutdown()
@@ -66,11 +99,32 @@ void MyHud::Shutdown()
 		Sprites[i].Delete();
 }
 
+void MyHud::InitUnitCircle()
+{
+	float Degree = 360;
+	float DegreeStep = 360 / NUM_STEPSCIRCLE;
+	int Polycount = NUM_STEPSCIRCLE;
+
+	for (int i = 0; i < Polycount; i++)
+	{
+		UnitCircleX[i] = sin(Degree * 3.141 / 180);
+		UnitCircleY[i] = cos(Degree * 3.141 / 180);
+		Degree -= DegreeStep;
+	}
+}
+
 void MyHud::DrawPlayerInfo()
 {
 	CPlayerPed* Playa = FindPlayerPed(-1);;
+
+	//We draw the Radarback texture as background for health and Armor
+	CRect RadarBackRec = CRect(SCREEN_COORD_LEFT(RadarPosX), SCREEN_COORD_BOTTOM(RadarPosY), SCREEN_COORD_LEFT(RadarPosX + RadarRadiusOut * 2), SCREEN_COORD_BOTTOM(RadarPosY + RadarRadiusOut * 2));
+	Sprites[1].Draw(RadarBackRec, CRGBA(255, 255, 255, 255));
+
+
 	float Offset = DrawMoneyInfo();
 	DrawWeaponInfo(Offset);
+	DrawHealthandArmor();
 }
 
 float MyHud::DrawMoneyInfo()
@@ -158,11 +212,11 @@ float MyHud::DrawMoneyInfo()
 	CFont::SetFontStyle(FONT_PRICEDOWN);
 	CFont::SetOrientation(ALIGN_RIGHT);
 	CFont::SetEdge(1);
-	CFont::SetScale(SCREEN_MULTIPLIER(1.0f), SCREEN_MULTIPLIER(2.0f));
+	CFont::SetScale(SCREEN_MULTIPLIER(MoneySizeX), SCREEN_MULTIPLIER(MoneySizeY));
 	CFont::SetDropColor(CRGBA::CRGBA(30, 30, 30, MoneyAlpha));
 	CFont::SetColor(CRGBA::CRGBA(200, 200, 200, MoneyAlpha));
 	sprintf(string, "$%d", NewMoney);
-	CFont::PrintString(SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_TOP(30.0f), string);
+	CFont::PrintString(SCREEN_COORD_RIGHT(MoneyPosX), SCREEN_COORD_TOP(MoneyPosY), string);
 
 	if (MoneyDelta != 0)
 	{
@@ -177,8 +231,9 @@ float MyHud::DrawMoneyInfo()
 			sprintf(string, " - $%d", abs(MoneyDelta));
 			CFont::SetColor(CRGBA::CRGBA(150, 80, 80, MoneyAlpha));
 		}
-			
-		CFont::PrintString(SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_TOP(80.0f), string);
+
+		float Posy = MoneyPosY + MoneySizeY * 25.0;
+		CFont::PrintString(SCREEN_COORD_RIGHT(MoneyPosX), SCREEN_COORD_TOP(Posy), string);
 	}
 
 	return PosY;
@@ -186,7 +241,20 @@ float MyHud::DrawMoneyInfo()
 
 void MyHud::DrawRadar()
 {
+	if (FrontEndMenuManager.m_nPrefsRadarMode == 2 || (m_ItemToFlash == ITEM_RADAR && CTimer::m_FrameCounter & 8))
+		return;
 
+	RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, (void*)rwFILTERLINEAR);
+	RwRenderStateSet(rwRENDERSTATESHADEMODE, (void*)rwFILTERNEAREST);
+	CRadar::DrawMap();
+
+	if (FrontEndMenuManager.m_bPrefsShowHud)
+	{
+		CRect BackCircle = CRect(SCREEN_COORD_LEFT(RadarPosX), SCREEN_COORD_BOTTOM(RadarPosY), SCREEN_COORD_LEFT(RadarPosX + RadarRadiusOut * 2), SCREEN_COORD_BOTTOM(RadarPosY + RadarRadiusOut * 2));
+		Sprites[0].Draw(BackCircle, CRGBA::CRGBA(255, 255, 255, 255));
+	}
+	if (FrontEndMenuManager.m_nPrefsRadarMode < 2)
+		CRadar::DrawBlips();
 }
 
 void MyHud::DrawZoneText()
@@ -255,18 +323,115 @@ void MyHud::DrawZoneText()
 		//float& unknownA = *(float*)0xBAA3E0;
 		//float& unknownB = *(float*)0xBAA3E4;
 
-			CFont::SetProportional(true);
-			CFont::SetBackground(false, false);
-			CFont::SetFontStyle(FONT_PRICEDOWN);
-			CFont::SetOrientation(ALIGN_RIGHT);
-			CFont::SetEdge(1);
-			CFont::SetScale(SCREEN_MULTIPLIER(1.25f), SCREEN_MULTIPLIER(2.5f));
-			CFont::SetDropColor(CRGBA::CRGBA(30, 30, 30, Fontalpha));
-			CFont::SetColor(CRGBA::CRGBA(180, 180, 180, Fontalpha));
-			CFont::PrintString(SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_BOTTOM(55.0f), m_ZoneToPrint);
-		
+		CFont::SetProportional(true);
+		CFont::SetBackground(false, false);
+		CFont::SetFontStyle(FONT_MENU);
+		CFont::SetOrientation(ALIGN_RIGHT);
+		CFont::SetEdge(1);
+		CFont::SetScale(SCREEN_MULTIPLIER(ZoneSizeX), SCREEN_MULTIPLIER(ZoneSizeY));
+		CFont::SetDropColor(CRGBA::CRGBA(30, 30, 30, Fontalpha));
+		CFont::SetColor(CRGBA::CRGBA(180, 180, 180, Fontalpha));
+		CFont::PrintString(SCREEN_COORD_RIGHT(ZonePosX), SCREEN_COORD_BOTTOM(ZonePosY), m_ZoneToPrint);
+
 	}
-	
+
+}
+
+void MyHud::DrawVehicleName()
+{
+	float Fontalpha = 255.0;
+	if (!m_pVehicleName)
+	{
+		VehicleNameState = STATE_OFF;
+		m_VehicleNameTimer = 0;
+		m_VehicleFadeTimer = 0;
+		m_pLastVehicleName = nullptr;
+		return;
+	}
+
+	if (m_pVehicleName != m_pLastVehicleName)
+	{
+		switch (VehicleNameState)
+		{
+		case STATE_OFF:
+			VehicleNameState = STATE_FADE_IN;
+			m_VehicleNameTimer = 0;
+			m_VehicleFadeTimer = 0;
+			m_pVehicleNameToPrint = m_pVehicleName;
+			break;
+		case STATE_ON:
+		case STATE_FADE_IN:
+		case STATE_FADE_OUT:
+		case STATE_SWITCH:
+			VehicleNameState = STATE_SWITCH;
+			m_VehicleNameTimer = 0;
+			//_VehicleFadeTimer = 200;
+			break;
+		default:
+			break;
+		}
+		m_pLastVehicleName = m_pVehicleName;
+	}
+
+	switch (VehicleNameState)
+	{
+	case STATE_OFF:
+		Fontalpha = 0;
+		break;
+	case STATE_ON:
+		Fontalpha = 255;
+		m_VehicleNameTimer += CTimer::ms_fTimeStep * 0.02 * 1000;
+		if (m_VehicleNameTimer > 3000)
+		{
+			VehicleNameState = STATE_FADE_OUT;
+			m_VehicleFadeTimer = 1000;
+		}
+		break;
+	case STATE_FADE_IN:
+		m_VehicleFadeTimer += CTimer::ms_fTimeStep * 0.02 * 1000;
+		if (m_VehicleFadeTimer > 1000)
+		{
+			VehicleNameState = STATE_ON;
+			m_VehicleNameTimer = 0;
+		}
+		Fontalpha = m_VehicleFadeTimer * 0.001 * 255.0;
+		break;
+	case STATE_FADE_OUT:
+		m_VehicleFadeTimer += CTimer::ms_fTimeStep * 0.02 * -1000.0;
+		if (m_VehicleFadeTimer < 0)
+		{
+			VehicleNameState = STATE_OFF;
+			m_VehicleNameTimer = 0;
+			m_VehicleFadeTimer = 0;
+		}
+		Fontalpha = m_VehicleFadeTimer * 0.001 * 255.0;
+		break;
+	case STATE_SWITCH:
+		Fontalpha = 0;
+		m_VehicleFadeTimer += CTimer::ms_fTimeStep * 0.02 * -1000.0;
+		if (m_VehicleFadeTimer < 0)
+		{
+			VehicleNameState = STATE_FADE_IN;
+			m_VehicleNameTimer = 0;
+			m_VehicleFadeTimer = 0;
+			m_pVehicleNameToPrint = m_pLastVehicleName;
+		}
+		Fontalpha = m_VehicleFadeTimer * 0.001 * 255.0;
+
+		break;
+	default:
+		break;
+	}
+
+	CFont::SetProportional(true);
+	CFont::SetBackground(false, false);
+	CFont::SetFontStyle(FONT_MENU);
+	CFont::SetOrientation(ALIGN_RIGHT);
+	CFont::SetEdge(1);
+	CFont::SetScale(SCREEN_MULTIPLIER(VehicleNameSizeX), SCREEN_MULTIPLIER(VehicleNameSizeY));
+	CFont::SetDropColor(CRGBA::CRGBA(30, 30, 30, Fontalpha));
+	CFont::SetColor(CRGBA::CRGBA(110, 110, 110, Fontalpha));
+	CFont::PrintString(SCREEN_COORD_RIGHT(VehicleNamePosX), SCREEN_COORD_BOTTOM(VehicleNamePosY), m_pVehicleNameToPrint);
 }
 
 void MyHud::DrawWeaponInfo(float Offset)
@@ -275,9 +440,9 @@ void MyHud::DrawWeaponInfo(float Offset)
 	int Alpha = 0;
 	eTaskType ActiveTask = Playa->m_pIntelligence->m_TaskMgr.GetActiveTask()->GetId();
 	eCamMode CamMode = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode;
-	
-	if (m_LastWeapon != Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_eWeaponType || ActiveTask == TASK_SIMPLE_USE_GUN 
-		|| Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_nState == 1 || CamMode == MODE_AIMWEAPON || KeyPressed(VK_TAB) 
+
+	if (m_LastWeapon != Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_eWeaponType || ActiveTask == TASK_SIMPLE_USE_GUN
+		|| Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_nState == 1 || CamMode == MODE_AIMWEAPON || KeyPressed(VK_TAB)
 		|| Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_nAmmoTotal != PrevAmmo)
 	{
 		PrevAmmo = Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_nAmmoTotal;
@@ -288,7 +453,7 @@ void MyHud::DrawWeaponInfo(float Offset)
 		else
 			WeaponState = STATE_FADE_IN;
 	}
-		
+
 	switch (WeaponState)
 	{
 	case STATE_OFF:
@@ -348,7 +513,7 @@ void MyHud::DrawWeaponAmmo(float Alpha, float Offset)
 
 
 
-	int PosY = 50.0f + Offset * 35.0f; //Offset is defined as an factor between 0 and 1
+	int PosY = WeaponAmmoPosY + Offset * 35.0f; //Offset is defined as an factor between 0 and 1
 
 	char Thestring[40];
 	CFont::SetProportional(true);
@@ -356,41 +521,40 @@ void MyHud::DrawWeaponAmmo(float Alpha, float Offset)
 	CFont::SetFontStyle(FONT_PRICEDOWN);
 	CFont::SetOrientation(ALIGN_RIGHT);
 	CFont::SetEdge(1);
-	CFont::SetScale(SCREEN_MULTIPLIER(1.0f), SCREEN_MULTIPLIER(2.0f));
+	CFont::SetScale(SCREEN_MULTIPLIER(WeaponAmmoSizeX), SCREEN_MULTIPLIER(WeaponAmmoSizeY));
 	CFont::SetDropColor(CRGBA::CRGBA(30, 30, 30, Alpha));
 
 	if (MaxAmmo > 1 && AmmoInClip < 1000)
 	{
 		CFont::SetColor(CRGBA::CRGBA(100, 100, 100, Alpha));
 		sprintf(Thestring, "%d", AmmoInClip);
-		CFont::PrintString(SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_TOP(PosY), Thestring);
+		CFont::PrintString(SCREEN_COORD_RIGHT(WeaponAmmoPosX), SCREEN_COORD_TOP(PosY), Thestring);
 
 		CFont::SetColor(CRGBA::CRGBA(200, 200, 200, Alpha));
 		sprintf(Thestring, "%d", AmmoTotal);
-		CFont::PrintString(SCREEN_COORD_RIGHT(80.0f), SCREEN_COORD_TOP(PosY), Thestring);
+		CFont::PrintString(SCREEN_COORD_RIGHT(WeaponAmmoPosX + 70.0f), SCREEN_COORD_TOP(PosY), Thestring);
 	}
 	else
 	{
 		CFont::SetColor(CRGBA::CRGBA(100, 100, 100, Alpha));
 		sprintf(Thestring, "%d", AmmoTotal);
-		CFont::PrintString(SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_TOP(PosY), Thestring);
+		CFont::PrintString(SCREEN_COORD_RIGHT(WeaponAmmoPosX), SCREEN_COORD_TOP(PosY), Thestring);
 	}
 
 }
 
 void MyHud::DrawWeaponIcon(float Alpha, float Offset)
 {
-	float IcWidth = 130.0f;
-	float IcHeight = 130.0f;
-	int PosY = 0.0f;
+
+
+	int PosY = WeaponIconPosY + Offset * 35.0f;
 	CPlayerPed* Playa = FindPlayerPed(-1);
 	CRect Icon;
 	int WeaponModel = CWeaponInfo::GetWeaponInfo(Playa->m_aWeapons[Playa->m_nSelectedWepSlot].m_eWeaponType, 1)->m_nModelId;
 
 	if (WeaponModel <= 0)
-	{
-		IcWidth = IcHeight * 2;
-		Icon = CRect(SCREEN_COORD_RIGHT(IcWidth + 30.0f), SCREEN_COORD_TOP(150.0f), SCREEN_COORD_RIGHT(30.0f), SCREEN_COORD_TOP(IcHeight + 150.0f));
+	{	//This Icon width is 2x height -->WeaponIconSize*2 
+		Icon = CRect(SCREEN_COORD_RIGHT(WeaponIconSize * 2 + WeaponIconPosX), SCREEN_COORD_TOP(PosY), SCREEN_COORD_RIGHT(WeaponIconPosX), SCREEN_COORD_TOP(WeaponIconSize + PosY));
 		CHud::Sprites[0].Draw(Icon, CRGBA::CRGBA(255, 255, 255, Alpha));
 	}
 	else
@@ -405,15 +569,13 @@ void MyHud::DrawWeaponIcon(float Alpha, float Offset)
 
 			if (IconTex)
 			{
+				float tempWidth = WeaponIconSize;
 				CTxdStore::PushCurrentTxd();
-				if (IconTex->raster->height == IconTex->raster->width)
-					IcWidth = IcHeight;
-				else
-					IcWidth = IcHeight * 2;
+				if (IconTex->raster->height != IconTex->raster->width)
+					tempWidth = WeaponIconSize * 2;
 
-
-				PosY = 115.0f + Offset * 35.0f;
-				Icon = CRect(SCREEN_COORD_RIGHT(IcWidth + 20.0f), SCREEN_COORD_TOP(PosY), SCREEN_COORD_RIGHT(20.0f), SCREEN_COORD_TOP(IcHeight + PosY));
+				//PosY = WeaponIconPosY + Offset * 35.0f;
+				Icon = CRect(SCREEN_COORD_RIGHT(tempWidth + WeaponIconPosX), SCREEN_COORD_TOP(PosY), SCREEN_COORD_RIGHT(WeaponIconPosX), SCREEN_COORD_TOP(WeaponIconSize + PosY));
 
 				CSprite2d IconSprite = CSprite2d::CSprite2d();
 				CTxdStore::SetCurrentTxd(Model->m_nTxdIndex);
@@ -423,6 +585,52 @@ void MyHud::DrawWeaponIcon(float Alpha, float Offset)
 				IconSprite.Delete();
 			}
 		}
+	}
+
+}
+
+void MyHud::DrawHealthandArmor()
+{
+	CPlayerPed* Playa = FindPlayerPed(-1);
+	int Polycount = NUM_STEPSCIRCLE;
+
+	CRGBA color_health = CRGBA::CRGBA(87, 124, 88, 255);
+	CRGBA color_armor = CRGBA::CRGBA(74, 148, 160, 255);
+
+	float percentage_health = (Playa->m_fHealth / Playa->m_fMaxHealth) * 100;
+	float percentage_armor = Playa->m_fArmour;
+
+	//why can't i write test & test2 directly into min()???
+	int test = ceil((Polycount - 1) * percentage_health / 200);
+	int test2 = (Polycount / 2);
+	int IndexHealth = std::min(test2, test);
+	int IndexMax = ceil((Polycount - 1) * (percentage_armor / 200 + percentage_health / 200)); //Maximum Index filled
+
+	float x[NUM_STEPSCIRCLE];
+	float y[NUM_STEPSCIRCLE];
+	float x2[NUM_STEPSCIRCLE];
+	float y2[NUM_STEPSCIRCLE];
+
+	for (int i = 0; i < Polycount; i++)
+	{
+
+		float Offsetx = RadarPosX + RadarRadiusOut;
+		float OffsetY = RadarPosY + RadarRadiusOut;
+
+		x2[i] = SCREEN_COORD_LEFT(UnitCircleX[i] * (RadarRadiusOut * 0.96) + Offsetx);
+		y2[i] = SCREEN_COORD_BOTTOM(UnitCircleY[i] * (RadarRadiusOut * 0.96) + OffsetY);
+		x[i] = SCREEN_COORD_LEFT(UnitCircleX[i] * RadarRadius + Offsetx);
+		y[i] = SCREEN_COORD_BOTTOM(UnitCircleY[i] * RadarRadius + OffsetY);
+	}
+
+	for (int i = 0; i < IndexMax; i++)
+	{
+		if (i == Polycount - 2)
+			CSprite2d::Draw2DPolygon(x[i], y[i], x2[i], y2[i], x[0], y[0], x2[0], y2[0], color_armor);
+		else if (i < IndexHealth)
+			CSprite2d::Draw2DPolygon(x[i], y[i], x2[i], y2[i], x[i + 1], y[i + 1], x2[i + 1], y2[i + 1], color_health);
+		else if (i >= IndexHealth)
+			CSprite2d::Draw2DPolygon(x[i], y[i], x2[i], y2[i], x[i + 1], y[i + 1], x2[i + 1], y2[i + 1], color_armor);
 	}
 
 }
