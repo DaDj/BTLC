@@ -27,7 +27,7 @@ enum HUDSHOWSTATE
 constexpr auto NUM_STEPSCIRCLE = 72;
 
 
-static class MyHud : CHud
+ class MyHud : CHud
 {
 public:
 	static int prevMoney;
