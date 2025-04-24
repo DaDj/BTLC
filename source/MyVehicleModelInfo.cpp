@@ -5,8 +5,9 @@ RwObjectNameIdAssocation* CVehicleModelInfo::ms_vehicleDescs = (RwObjectNameIdAs
 void MyVehicleModelInfo::Implement()
 {
 	//Patch New Dirt Materials
+
 	patch::RedirectJump(0x5D5DB0, MyVehicleModelInfo::RemapDirt);
-	//patch::RedirectCall(0x4C9648, &MyVehicleModelInfo::FindEditableMaterialList);
+	patch::RedirectCall(0x4C9648, &MyVehicleModelInfo::EmptyFindMats);
 }
 
 void MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, void* data)
@@ -31,6 +32,12 @@ void MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, void* data
 
 }
 
+
+void MyVehicleModelInfo::EmptyFindMats(CVehicleModelInfo* modelInfo)
+{
+
+}
+
 void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, int Dirtlevel)
 {
 	const int MaxNumDirtMats = 32;
@@ -38,8 +45,7 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 	RpAtomic* atomic;
 	RpGeometry* Geometry;
 	RwTexture* texture = nullptr;
-	const char* texName;
-	int Idx = 0;
+	const char* texName = "";
 
 	for (RwLLLink* link = rwLinkListGetFirstLLLink(&clump->atomicList); link != rwLinkListGetTerminator(&clump->atomicList); link = rwLLLinkGetNext(link))
 	{
@@ -55,13 +61,13 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 			if (texture && texName)
 			{
 				if (strcmp(texName, "vehiclegrunge256") == 0)
-					Geometry->matList.materials[i]->texture = MyCarFxRender::ms_aDirtTextures[Dirtlevel];
+				RpMaterialSetTexture(Geometry->matList.materials[i],MyCarFxRender::ms_aDirtTextures[Dirtlevel]);
 
 				if (strcmp(texName, "vehicle_genericmud_truck") == 0)
-					Geometry->matList.materials[i]->texture = MyCarFxRender::ms_aDirtTextures_2[Dirtlevel];
+					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_2[Dirtlevel]);
 
 				if (strcmp(texName, "vehiclegrunge_iv") == 0)
-					Geometry->matList.materials[i]->texture = MyCarFxRender::ms_aDirtTextures_3[Dirtlevel];
+					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_3[Dirtlevel]);
 			}
 		}
 	}
@@ -79,13 +85,13 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 			if (texture && texName)
 			{
 				if (strcmp(texName, "vehiclegrunge256") == 0)
-					Geometry->matList.materials[i]->texture = MyCarFxRender::ms_aDirtTextures[Dirtlevel];
+					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures[Dirtlevel]);
 
 				if (strcmp(texName, "vehicle_genericmud_truck") == 0)
-					Geometry->matList.materials[i]->texture = MyCarFxRender::ms_aDirtTextures_2[Dirtlevel];
+					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_2[Dirtlevel]);
 
 				if (strcmp(texName, "vehiclegrunge_iv") == 0)
-					Geometry->matList.materials[i]->texture = MyCarFxRender::ms_aDirtTextures_3[Dirtlevel];
+					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_3[Dirtlevel]);
 			}
 		}
 	}
@@ -93,6 +99,6 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 
 void MyVehicleModelInfo::RemapDirt(CVehicleModelInfo* modelInfo, int DirtLevel)
 {
-	FindEditableMaterialList(modelInfo, DirtLevel);  //takes only 0.005 ms so its fineeeee
+	FindEditableMaterialList(modelInfo, DirtLevel);  //takes only 0.005 ms so its fineeeee 
 }
 

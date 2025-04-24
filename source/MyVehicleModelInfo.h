@@ -16,6 +16,7 @@ class MyVehicleModelInfo : CVehicleModelInfo
 public:
 	static void Implement();
 	static void SetEditableMaterialsCB(RpMaterial* material, void* data);
+	static void EmptyFindMats(CVehicleModelInfo* modelInfo);
 	//static void SetCarCustomPlate(CVehicleModelInfo* modelInfo, RpClump* clump);
 	static void FindEditableMaterialList(CVehicleModelInfo* modelInfo, int Dirtlevel);
 	static void RemapDirt(CVehicleModelInfo* modelInfo, int DirtLevel);
