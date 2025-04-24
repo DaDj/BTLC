@@ -14,6 +14,8 @@ using namespace plugin;
 
 class BTLC {
 public:
+
+
     BTLC() {
 		//Events::initRwEvent.Add();
 	/*	Events::initRwEvent.after += []()
@@ -27,9 +29,10 @@ public:
 		MyObjectData::Implement(); 	//Custom Center of Mass 
 		MyWeather::Implement();  //NEw Weather effects & Always Weather Region San Fierro
 
+
+		Events::initRwEvent.after.Add(MyVehicleModelInfo::Implement); //Dirt textures , lights ect.
+		Events::initRwEvent.after.Add(MyCarFxRender::Implement); //Initialise Dirt textures
 		
-		MyCarFxRender::Implement(); //Initialise Dirt textures
-		MyVehicleModelInfo::Implement(); //Dirt textures , lights ect.
 
 		#if _DEBUG
 		MyDebug::Implement();
