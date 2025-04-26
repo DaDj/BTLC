@@ -6,7 +6,8 @@
 
 using namespace plugin;
 
-struct tRestoreEntry {
+struct tRestoreEntry 
+{
 	void* Address;
 	void* Value;
 };

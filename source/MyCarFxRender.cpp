@@ -9,6 +9,13 @@ RwTexture* MyCarFxRender::ms_aDirtTextures_4[16] = {};
 RwTexture* MyCarFxRender::ms_aDirtTextures_5[16] = {};
 RwTexture* MyCarFxRender::ms_aDirtTextures_6[16] = {};
 
+void MyCarFxRender::Implement()
+{
+	patch::RedirectCall(0x53CA75, MyCarFxRender::MyShutdown);
+	patch::RedirectCall(0x53CA61, MyCarFxRender::MyShutdown);
+	patch::RedirectCall(0x5B8FFD, MyCarFxRender::InitialiseDirtTextures);
+}
+
 void MyCarFxRender::Shutdown() //org
 {
 	((void(__cdecl*)())0x5D5AD0)();
@@ -122,18 +129,10 @@ void MyCarFxRender::InitialiseDirtTextures()
 	InitialiseDirtTexture();
 
 	//Dirt Textures which blend to white
-	InitialiseDirtTextureSingle((char*)"vehiclegrunge_iv", ms_aDirtTextures_3);
-	InitialiseDirtTextureSingle((char*)"vehicle_genericmud_truck", ms_aDirtTextures_2);
+	InitialiseDirtTextureSingle((char*)"vehiclegrunge_iv", ms_aDirtTextures_2);
 
 	//Textures which belnd between two images
-	InitialiseBlendTextureSingle((char*)"generic_glasswindows2", (char*)"generic_glasswindows2_d", ms_aDirtTextures_4);
-	InitialiseBlendTextureSingle((char*)"tyrewall_dirt_1", (char*)"tyrewall_dirt_1d", ms_aDirtTextures_5);
-}
-
-
-void MyCarFxRender::Implement()
-{
-	patch::RedirectCall(0x53CA75, MyCarFxRender::MyShutdown);
-	patch::RedirectCall(0x53CA61, MyCarFxRender::MyShutdown);
-	patch::RedirectCall(0x5B8FFD, MyCarFxRender::InitialiseDirtTextures);
+	InitialiseBlendTextureSingle((char*)"generic_glasswindows2", (char*)"generic_glasswindows2_d", ms_aDirtTextures_3);
+	InitialiseBlendTextureSingle((char*)"tyrewall_dirt_1", (char*)"tyrewall_dirt_1d", ms_aDirtTextures_4);
+	InitialiseBlendTextureSingle((char*)"vehicle_generic_detail", (char*)"vehicle_generic_detaild", ms_aDirtTextures_5);
 }
