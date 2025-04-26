@@ -2,6 +2,8 @@
 #include <chrono>
 RwObjectNameIdAssocation* CVehicleModelInfo::ms_vehicleDescs = (RwObjectNameIdAssocation*)0x8A7740;
 
+
+
 void MyVehicleModelInfo::Implement()
 {
 	//Patch New Dirt Materials
@@ -35,7 +37,7 @@ void MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, void* data
 
 void MyVehicleModelInfo::EmptyFindMats(CVehicleModelInfo* modelInfo)
 {
-
+	//We don't do anything here atm.
 }
 
 void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, int Dirtlevel)
@@ -68,6 +70,12 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 
 				if (strcmp(texName, "vehiclegrunge_iv") == 0)
 					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_3[Dirtlevel]);
+
+				if (strcmp(texName, "generic_glasswindows2") == 0)
+					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_4[Dirtlevel]);
+
+				if (strcmp(texName, "tyrewall_dirt_1") == 0)
+					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_5[Dirtlevel]);
 			}
 		}
 	}
@@ -92,6 +100,12 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 
 				if (strcmp(texName, "vehiclegrunge_iv") == 0)
 					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_3[Dirtlevel]);
+
+				if (strcmp(texName, "generic_glasswindows2") == 0)
+					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_4[Dirtlevel]);
+
+				if (strcmp(texName, "tyrewall_dirt_1") == 0)
+					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_5[Dirtlevel]);
 			}
 		}
 	}
@@ -99,6 +113,6 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 
 void MyVehicleModelInfo::RemapDirt(CVehicleModelInfo* modelInfo, int DirtLevel)
 {
-	FindEditableMaterialList(modelInfo, DirtLevel);  //takes only 0.005 ms so its fineeeee 
+	FindEditableMaterialList(modelInfo, DirtLevel);  //takes only 0.005ms so its fineeeee 
 }
 

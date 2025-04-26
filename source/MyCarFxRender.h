@@ -20,7 +20,9 @@ public:
 	static void Shutdown();
 	static void InitialiseDirtTexture();
 	static void MyShutdown();
-	static void MyInitialiseDirtTextures();
-	static void MyInitialiseDirtTextureSingle(char* name, RwTexture** Array);
+	static void InitialiseDirtTextures();
+	
+	static void InitialiseBlendTextureSingle(char* CleanName, char* DirtName, RwTexture** TextureArray);
+	static void InitialiseDirtTextureSingle(char* name, RwTexture** Array);
 	static void Implement();
 };

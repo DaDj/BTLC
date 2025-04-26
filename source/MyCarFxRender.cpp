@@ -26,20 +26,49 @@ void MyCarFxRender::MyShutdown()
 	{
 		RwTextureDestroy(ms_aDirtTextures_2[i]);
 		RwTextureDestroy(ms_aDirtTextures_3[i]);
-		//RwTextureDestroy(ms_aDirtTextures_4[i]);
-		//RwTextureDestroy(ms_aDirtTextures_5[i]);
+		RwTextureDestroy(ms_aDirtTextures_4[i]);
+		RwTextureDestroy(ms_aDirtTextures_5[i]);
 		//RwTextureDestroy(ms_aDirtTextures_6[i]);
 	}
 }
 
-void MyCarFxRender::MyInitialiseDirtTextures()
+void MyCarFxRender::InitialiseBlendTextureSingle(char* CleanName, char* DirtName, RwTexture** TextureArray)
 {
-	InitialiseDirtTexture();
-	MyInitialiseDirtTextureSingle((char*)"vehiclegrunge_iv", ms_aDirtTextures_3);
-	MyInitialiseDirtTextureSingle((char*)"vehicle_genericmud_truck", ms_aDirtTextures_2);
+	RwTexture* SrcTexture;
+	RwTexture* DestTexture;
+
+	int Textureindex = CTxdStore::FindTxdSlot("VEHICLE");
+	if (Textureindex == -1)
+	{
+		Textureindex = CTxdStore::AddTxdSlot("VEHICLE");
+		CTxdStore::LoadTxd(Textureindex, "MODELS\\GENERIC\\VEHICLE.TXD");
+		CTxdStore::AddRef(Textureindex);
+	}
+	CTxdStore::PushCurrentTxd();
+	CTxdStore::SetCurrentTxd(Textureindex);
+	
+
+	SrcTexture = MyRwReadTexture(CleanName, 0);
+	SrcTexture->filterAddressing = rwFILTERLINEAR;
+
+	DestTexture = MyRwReadTexture(DirtName, 0);
+	DestTexture->filterAddressing = rwFILTERLINEAR;
+
+	if (SrcTexture && DestTexture)
+	{
+		for (size_t i = 0; i < 16; i++)
+		{
+			float FacB = (1.0/ 15.0) * i;
+			float FacA = 1 - FacB;
+			TextureArray[i] = CClothesBuilder::CopyTexture(SrcTexture);
+			RwTextureSetName(TextureArray[i], CleanName);
+			CClothesBuilder::BlendTextures(TextureArray[i], DestTexture, FacA, FacB);
+		}
+	}
+	CTxdStore::PopCurrentTxd();
 }
 
-void MyCarFxRender::MyInitialiseDirtTextureSingle(char* name, RwTexture** dirtTextureArray)
+void MyCarFxRender::InitialiseDirtTextureSingle(char* name, RwTexture** dirtTextureArray)
 {
 	RwTexture* texture;
 
@@ -61,7 +90,7 @@ void MyCarFxRender::MyInitialiseDirtTextureSingle(char* name, RwTexture** dirtTe
 
 	for (int texid = 0; texid < 16; texid++)
 	{
-		dirtTextureArray[texid] = CClothesBuilder::CopyTexture(texture);;
+		dirtTextureArray[texid] = CClothesBuilder::CopyTexture(texture);
 		RwTextureSetName(dirtTextureArray[texid], name);
 
 		RwRaster* Dirtraster = dirtTextureArray[texid]->raster;
@@ -88,10 +117,23 @@ void MyCarFxRender::MyInitialiseDirtTextureSingle(char* name, RwTexture** dirtTe
 	CTxdStore::PopCurrentTxd();
 }
 
+void MyCarFxRender::InitialiseDirtTextures()
+{
+	InitialiseDirtTexture();
+
+	//Dirt Textures which blend to white
+	InitialiseDirtTextureSingle((char*)"vehiclegrunge_iv", ms_aDirtTextures_3);
+	InitialiseDirtTextureSingle((char*)"vehicle_genericmud_truck", ms_aDirtTextures_2);
+
+	//Textures which belnd between two images
+	InitialiseBlendTextureSingle((char*)"generic_glasswindows2", (char*)"generic_glasswindows2_d", ms_aDirtTextures_4);
+	InitialiseBlendTextureSingle((char*)"tyrewall_dirt_1", (char*)"tyrewall_dirt_1d", ms_aDirtTextures_5);
+}
+
 
 void MyCarFxRender::Implement()
 {
 	patch::RedirectCall(0x53CA75, MyCarFxRender::MyShutdown);
 	patch::RedirectCall(0x53CA61, MyCarFxRender::MyShutdown);
-	patch::RedirectCall(0x5B8FFD, MyCarFxRender::MyInitialiseDirtTextures);
+	patch::RedirectCall(0x5B8FFD, MyCarFxRender::InitialiseDirtTextures);
 }
