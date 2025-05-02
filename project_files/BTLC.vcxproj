@@ -111,6 +111,7 @@
     <ClCompile Include="..\source\MyDebug.cpp" />
     <ClCompile Include="..\source\MyFileMgr.cpp" />
     <ClCompile Include="..\source\MyHud.cpp" />
+    <ClCompile Include="..\source\MyMisc.cpp" />
     <ClCompile Include="..\source\MyObjectData.cpp" />
     <ClCompile Include="..\source\MyRadar.cpp" />
     <ClCompile Include="..\source\MyVehicle.cpp" />
@@ -123,12 +124,14 @@
     <ClInclude Include="..\source\MyDebug.h" />
     <ClInclude Include="..\source\MyFileMgr.h" />
     <ClInclude Include="..\source\MyHud.h" />
+    <ClInclude Include="..\source\MyMisc.h" />
     <ClInclude Include="..\source\MyObjectData.h" />
     <ClInclude Include="..\source\MyRadar.h" />
     <ClInclude Include="..\source\MyVehicle.h" />
     <ClInclude Include="..\source\MyVehicleModelInfo.h" />
     <ClInclude Include="..\source\MyWeather.h" />
     <ClInclude Include="..\source\RWExtend.h" />
+    <ClInclude Include="..\source\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

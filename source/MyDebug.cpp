@@ -4,7 +4,7 @@ void MyDebug::Implement()
 {
 	plugin::Events::initGameEvent += []
 		{
-			MyDebug::GenerateFreeIDList();
+			MyDebug::GenerateFreeIDList(); 
 		};
 }
 

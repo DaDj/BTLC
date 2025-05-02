@@ -1,3 +1,4 @@
+#pragma once
 #include "plugin.h"
 #include "CWeather.h"
 using namespace plugin;
