@@ -9,6 +9,7 @@
 #include "MyFileMgr.h"
 #include "MyVehicle.h"
 #include "MyMisc.h"
+#include "MyEntity.h"
 #pragma warning(disable:26495) 
 #pragma warning(disable:26439) 
 
@@ -28,6 +29,7 @@ public:
 		MyRadar::Implement(); // New UI
 		MyObjectData::Implement(); 	//Custom Center of Mass 
 		MyWeather::Implement();  //New Weather effects & Always Weather Region San Fierro
+		MyEntity::Implement(); //GetIsOnScreen for Entities
 
 		MyVehicle::Implement();
 		Events::initRwEvent.after.Add(MyCarFxRender::Implement); //Initialise Dirt textures

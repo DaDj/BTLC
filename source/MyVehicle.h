@@ -44,7 +44,7 @@ public:
 
 
 
-class MyVehicle
+class MyVehicle : CVehicle
 {
 public:
 	static void Implement();

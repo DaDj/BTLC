@@ -109,6 +109,7 @@
     <ClCompile Include="..\source\Main.cpp" />
     <ClCompile Include="..\source\MyCarFxRender.cpp" />
     <ClCompile Include="..\source\MyDebug.cpp" />
+    <ClCompile Include="..\source\MyEntity.cpp" />
     <ClCompile Include="..\source\MyFileMgr.cpp" />
     <ClCompile Include="..\source\MyHud.cpp" />
     <ClCompile Include="..\source\MyMisc.cpp" />
@@ -120,8 +121,10 @@
     <ClCompile Include="..\source\RWExtend.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\source\MemoryMgr.h" />
     <ClInclude Include="..\source\MyCarFxRender.h" />
     <ClInclude Include="..\source\MyDebug.h" />
+    <ClInclude Include="..\source\MyEntity.h" />
     <ClInclude Include="..\source\MyFileMgr.h" />
     <ClInclude Include="..\source\MyHud.h" />
     <ClInclude Include="..\source\MyMisc.h" />

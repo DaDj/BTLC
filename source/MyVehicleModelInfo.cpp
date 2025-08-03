@@ -47,9 +47,9 @@ RpMaterial* MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, voi
 	if (ms_pRemapTexture && material && RpMaterialGetTexture(material) && material->texture->name[0] == '#')
 	{
 		(*pEntries)->Address = &material->texture;
-		(*pEntries)->value = (int)material->texture;
+		(*pEntries)->value = *(int*)material->texture;
 		(*pEntries)++;
-		material->texture = ms_pRemapTexture;
+		material->texture = (RwTexture*)ms_pRemapTexture->raster;
 	}
 
 	if (material->texture != nullptr && material->texture == ms_pLightsTexture)

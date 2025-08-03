@@ -55,10 +55,10 @@ void MyCarFxRender::InitialiseBlendTextureSingle(char* CleanName, char* DirtName
 	CTxdStore::SetCurrentTxd(Textureindex);
 	
 
-	SrcTexture = MyRwReadTexture(CleanName, 0);
+	SrcTexture = RwTextureRead(CleanName, 0); //MyRwReadTexture(CleanName, 0);
 	SrcTexture->filterAddressing = rwFILTERLINEAR;
 
-	DestTexture = MyRwReadTexture(DirtName, 0);
+	DestTexture = RwTextureRead(DirtName, 0); //MyRwReadTexture(DirtName, 0);
 	DestTexture->filterAddressing = rwFILTERLINEAR;
 
 	if (SrcTexture && DestTexture)
@@ -92,7 +92,7 @@ void MyCarFxRender::InitialiseDirtTextureSingle(char* name, RwTexture** dirtText
 	
 	
 	
-	texture = MyRwReadTexture(name, 0);
+	texture = RwTextureRead(name, 0); //MyRwReadTexture(name, 0);
 	texture->filterAddressing = rwFILTERLINEAR;
 
 	for (int texid = 0; texid < 16; texid++)

@@ -1,13 +1,14 @@
 #include "MyVehicle.h"
 #include "CCamera.h"
 #include "CGeneral.h"
-
+#include "MemoryMgr.h"
 
 static VehicleExtendedData<MyextVeh> MyCustomVehicle;
 
 
 void MyVehicle::Implement()
 {
+	//Memory::InjectHook(0x5532A9, &MyVehicle::SetupRender, Memory::HookType::Call);
 	patch::RedirectCall(0x5532A9, MyVehicle::SetupRender);
 	Events::vehicleRenderEvent.before.Add(MyVehicle::DoVehicleLights);
 //	patch::RedirectCall(0x6ABCB9, MyVehicle::DoVehicleLights,true);
@@ -26,7 +27,7 @@ void MyVehicle::SetIndicatorState(CVehicle* TheVehicle)
 
 	if ((TheVehicle->m_nVehicleSubClass == VEHICLE_AUTOMOBILE || TheVehicle->m_nVehicleSubClass == VEHICLE_BIKE) &&
 		(TheVehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_AUTOMOBILE || TheVehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_BIKE) &&
-		TheVehicle->m_nVehicleFlags.bEngineOn && TheVehicle->m_fHealth > 0 && !TheVehicle->m_nVehicleFlags.bIsDrowning && !TheVehicle->m_pAttachedTo)
+		TheVehicle->bEngineOn && TheVehicle->m_fHealth > 0 && !TheVehicle->bIsDrowning && !TheVehicle->m_pAttachedTo)
 	{
 		if (TheVehicle->m_pDriver && TheVehicle->m_pDriver == FindPlayerPed())
 		{
@@ -132,7 +133,7 @@ void MyVehicle::DoVehicleLights(CVehicle* TheVehicle)
 	}
 
 
-	if (TheVehicle->m_pDriver && TheVehicle->m_fBreakPedal > 0.0 && !TheVehicle->m_nVehicleFlags.bIsHandbrakeOn) //Is Braking?
+	if (TheVehicle->m_pDriver && TheVehicle->m_fBreakPedal > 0.0 && !TheVehicle->bIsHandbrakeOn) //Is Braking?
 	{
 		NewLightState.BrakelightL = LIGHT_ON;
 		NewLightState.BrakelightR = LIGHT_ON;
