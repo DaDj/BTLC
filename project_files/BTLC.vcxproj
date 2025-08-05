@@ -42,7 +42,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\output\asi\</OutDir>
+    <OutDir>..\..\..\03_Game\plugins</OutDir>
     <IntDir>..\output\obj\Release\</IntDir>
     <TargetName>BTLCSA</TargetName>
     <TargetExt>.asi</TargetExt>

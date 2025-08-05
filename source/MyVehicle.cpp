@@ -88,6 +88,23 @@ void MyVehicle::DoVehicleLights(CVehicle* TheVehicle)
 	float VehicleDistance = 0.0f;
 
 
+	NewLightState.BrakelightL = LIGHT_OFF;
+	NewLightState.BrakelightR = LIGHT_OFF;
+	NewLightState.FogLightFL = LIGHT_OFF;
+	NewLightState.FogLightFR = LIGHT_OFF;
+	NewLightState.FogLightRL = LIGHT_OFF;
+	NewLightState.FogLightRR = LIGHT_OFF;
+	NewLightState.HeadlightL = LIGHT_OFF;
+	NewLightState.HeadlightR = LIGHT_OFF;
+	NewLightState.ReverselightL = LIGHT_OFF; 
+	NewLightState.ReverselightR = LIGHT_OFF;
+	NewLightState.TaillightL = LIGHT_OFF;
+	NewLightState.TaillightR = LIGHT_OFF;
+	NewLightState.IndicatorFL = LIGHT_OFF;
+	NewLightState.IndicatorFR = LIGHT_OFF;
+	NewLightState.IndicatorRL = LIGHT_OFF;
+	NewLightState.IndicatorRR = LIGHT_OFF;
+
 	if (CVehicle::ms_forceVehicleLightsOff)
 	{
 		MyCustomVehicle.Get(TheVehicle).LightData = NewLightState;
@@ -201,7 +218,7 @@ void MyVehicle::DoVehicleLights(CVehicle* TheVehicle)
 		NewLightState.TaillightR = LIGHT_BROKEN;
 		NewLightState.IndicatorRR = LIGHT_BROKEN;
 		NewLightState.FogLightRR = LIGHT_BROKEN;
-	}
+	} 
 
 
 	//MyModel->m_pVehicleStruct->m_avDummyPos[DUMMY_LIGHT_FRONT_MAIN]
