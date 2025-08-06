@@ -74,6 +74,8 @@ public:
 	static void Implement();
 	static RpMaterial* SetEditableMaterialsCB(RpMaterial* material, void* data);
 	static void EmptyFindMats(CVehicleModelInfo* modelInfo);
+	static void SetDirtShininess(RpMaterial* Material, int Dirtlevel,float MaxShininess, float MinShininess);
+	static void SetDirtTextures(RpMaterial* Material, int Dirtlevel);
 	//static void SetCarCustomPlate(CVehicleModelInfo* modelInfo, RpClump* clump);
 	static void UpdateLightsTextures(CVehicleModelInfo* modelInfo);
 	static void FindEditableMaterialList(CVehicleModelInfo* modelInfo, int Dirtlevel);

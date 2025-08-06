@@ -2,12 +2,22 @@
 #include "RenderWare.h"
 
 
-RwTexture** MyCarFxRender::ms_aDirtTextures = (RwTexture**)0xC02BD0;
+RwTexture* MyCarFxRender::ms_aDirtTextures[16] = {};//(RwTexture**)0xC02BD0;
 RwTexture* MyCarFxRender::ms_aDirtTextures_2[16] = {};
 RwTexture* MyCarFxRender::ms_aDirtTextures_3[16] = {};
 RwTexture* MyCarFxRender::ms_aDirtTextures_4[16] = {};
 RwTexture* MyCarFxRender::ms_aDirtTextures_5[16] = {};
 RwTexture* MyCarFxRender::ms_aDirtTextures_6[16] = {};
+
+float MyCarFxRender::GetFxEnvShininess(RpMaterial* material)
+{
+	return plugin::CallAndReturn<float, 0x5D8AD0, RpMaterial*>(material);
+}
+
+int MyCarFxRender::SetFxEnvShininess(RpMaterial* material, float value)
+{
+	return plugin::CallAndReturn<int, 0x5D70A0, RpMaterial*, float>(material, value);
+}
 
 void MyCarFxRender::Implement()
 {
@@ -126,7 +136,10 @@ void MyCarFxRender::InitialiseDirtTextureSingle(char* name, RwTexture** dirtText
 
 void MyCarFxRender::InitialiseDirtTextures()
 {
-	InitialiseDirtTexture();
+	//InitialiseDirtTexture();
+
+	//Dirt Textures which blend to white
+	InitialiseDirtTextureSingle((char*)"vehiclegrunge256", ms_aDirtTextures);
 
 	//Dirt Textures which blend to white
 	InitialiseDirtTextureSingle((char*)"vehiclegrunge_iv", ms_aDirtTextures_2);

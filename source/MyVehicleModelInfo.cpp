@@ -1,4 +1,5 @@
 #include "MyVehicleModelInfo.h"
+#include <chrono>
 
 RwObjectNameIdAssocation* CVehicleModelInfo::ms_vehicleDescs = (RwObjectNameIdAssocation*)0x8A7740;
 
@@ -117,6 +118,9 @@ RpMaterial* MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, voi
 		material->color.blue = 255;
 		material->color.green = 255;
 
+
+	
+
 		if (LightStatus == LIGHT_BROKEN && material->color.alpha < 255)
 			material->color.alpha = 0;
 
@@ -183,6 +187,60 @@ void MyVehicleModelInfo::EmptyFindMats(CVehicleModelInfo* modelInfo)
 	
 }
 
+void MyVehicleModelInfo::SetDirtShininess(RpMaterial* Material, int Dirtlevel,float MaxShininess,float MinShininess)
+{
+	if (RpMatFXMaterialGetEffects(Material) != rpMATFXEFFECTENVMAP)
+		return;
+
+	const int MaxDirtLevel = 15;
+	const int FullShineUntilLevel = 3;
+	const int FadeRange = MaxDirtLevel - FullShineUntilLevel;
+
+	if (MaxShininess == 0.0f) //We use the orginal material shininess
+	{
+		MaxShininess = MyCarFxRender::GetFxEnvShininess(Material)*1.5;
+		MinShininess = MaxShininess / 3;
+	}
+	
+	float scale = std::max((Dirtlevel - FullShineUntilLevel) / float(FadeRange), 0.0f);
+	float currentShininess = std::max(MaxShininess * (1.0f - scale), MinShininess);
+	MyCarFxRender::SetFxEnvShininess(Material, currentShininess);
+
+}
+void MyVehicleModelInfo::SetDirtTextures(RpMaterial* Material, int Dirtlevel)
+{
+	RwTexture* texture  = RpMaterialGetTexture(Material);
+	const char* texName = RwTextureGetName(texture);
+	if (texture && texName)
+	{
+		if (strcmp(texName, "vehiclegrunge256") == 0)
+			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures[Dirtlevel]);
+			SetDirtShininess(Material, Dirtlevel, 0.027f, 0.01f);
+
+		if (strcmp(texName, "vehiclegrunge_iv") == 0)
+		{
+			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures_2[Dirtlevel]);
+			SetDirtShininess(Material, Dirtlevel, 0.027f,0.01f);
+		}
+			
+
+		if (strcmp(texName, "generic_glasswindows2") == 0)
+			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures_3[Dirtlevel]);
+
+		if (strcmp(texName, "tyrewall_dirt_1") == 0)
+		{
+			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures_4[Dirtlevel]);
+			SetDirtShininess(Material, Dirtlevel, 0.0f, 0.03f);
+		}
+		
+		if (strcmp(texName, "vehicle_generic_detail") == 0)
+		{
+			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures_5[Dirtlevel]);
+			SetDirtShininess(Material, Dirtlevel, 0.15f,0.03f);
+		}
+
+	}
+}
 
 void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, int Dirtlevel)
 {
@@ -202,25 +260,7 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 		int NumMaterials = Geometry->matList.numMaterials;
 		for (int i = 0; i < NumMaterials; i++)
 		{
-			texture = RpMaterialGetTexture(Geometry->matList.materials[i]);
-			texName = RwTextureGetName(texture);
-			if (texture && texName)
-			{
-				if (strcmp(texName, "vehiclegrunge256") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures[Dirtlevel]);
-
-				if (strcmp(texName, "vehiclegrunge_iv") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_2[Dirtlevel]);
-
-				if (strcmp(texName, "generic_glasswindows2") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_3[Dirtlevel]);
-
-				if (strcmp(texName, "tyrewall_dirt_1") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_4[Dirtlevel]);
-
-				if (strcmp(texName, "vehicle_generic_detail") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_5[Dirtlevel]);
-			}
+			SetDirtTextures(Geometry->matList.materials[i], Dirtlevel);
 		}
 	}
 
@@ -232,25 +272,7 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 		int NumMaterials = Geometry->matList.numMaterials;
 		for (int i = 0; i < NumMaterials; i++)
 		{
-			texture = RpMaterialGetTexture(Geometry->matList.materials[i]);
-			texName = RwTextureGetName(texture);
-			if (texture && texName)
-			{
-				if (strcmp(texName, "vehiclegrunge256") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures[Dirtlevel]);
-
-				if (strcmp(texName, "vehiclegrunge_iv") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_2[Dirtlevel]);
-
-				if (strcmp(texName, "generic_glasswindows2") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_3[Dirtlevel]);
-
-				if (strcmp(texName, "tyrewall_dirt_1") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_4[Dirtlevel]);
-
-				if (strcmp(texName, "vehicle_generic_detail") == 0)
-					RpMaterialSetTexture(Geometry->matList.materials[i], MyCarFxRender::ms_aDirtTextures_5[Dirtlevel]);
-			}
+			SetDirtTextures(Geometry->matList.materials[i], Dirtlevel);
 		}
 	}
 }

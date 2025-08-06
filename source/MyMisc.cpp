@@ -37,6 +37,30 @@ void MyMisc::Implement()
 	patch::Set(0x570E7F, 0xD8DD);
 	patch::Nop(0x570E81, 4);
 
+
+	//// Motion Blur Alpha reduced
+	patch::SetUInt(0x8D5104, 15);
+
+	static float G_ShadowsHeight = 0.07;
+	patch::Set(0x709B2D + 2, &G_ShadowsHeight);
+	patch::Set(0x709B8C + 2, &G_ShadowsHeight);
+	patch::Set(0x709BC5 + 2, &G_ShadowsHeight);
+	patch::Set(0x709BF4 + 2, &G_ShadowsHeight);
+	patch::Set(0x709C91 + 2, &G_ShadowsHeight);
+
+	patch::Set(0x709E9C + 2, &G_ShadowsHeight);
+	patch::Set(0x709EBA + 2, &G_ShadowsHeight);
+	patch::Set(0x709ED5 + 2, &G_ShadowsHeight);
+
+	patch::Set(0x70B21F + 2, &G_ShadowsHeight);
+	patch::Set(0x70B371 + 2, &G_ShadowsHeight);
+	patch::Set(0x70B4CF + 2, &G_ShadowsHeight);
+	patch::Set(0x70B633 + 2, &G_ShadowsHeight);
+
+	patch::Set(0x7085A7 + 2, &G_ShadowsHeight);
+
+	patch::SetFloat(0x8CD4F0, 50.0f);
+
 }
 
 void MyMisc::PatchShadowDrawDistances()
@@ -44,6 +68,8 @@ void MyMisc::PatchShadowDrawDistances()
 	//Corona Shadow Distances i.e. Light on ground
 	patch::SetFloat(0x6FD3A6, TheCamera.m_fLODDistMultiplier * 80.0f);
 	patch::SetFloat(0x6FD44F, TheCamera.m_fLODDistMultiplier * 80.0f);
+
+
 
 	//ToDO: 
 	//Vehicle Shadows, Pole shadows, Headlightshadows(we may implement that one completely new in vehicle DoLights)
