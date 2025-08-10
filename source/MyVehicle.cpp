@@ -232,6 +232,7 @@ void MyVehicle::SetupRender(CVehicle* TheVehicle)
 	MyVehicleModelInfo::UpdateLightsTextures(MyModel);
 	//	MyVehicle::DoVehicleLights(TheVehicle);
 	MyVehicleModelInfo::VehLightStatus = MyCustomVehicle.Get(TheVehicle).LightData;
+	MyVehicleModelInfo::CurrentDirtLevel = TheVehicle->m_fDirtLevel;
 	TheVehicle->SetupRender();
 }
 

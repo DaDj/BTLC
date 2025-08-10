@@ -7,6 +7,7 @@ RwObjectNameIdAssocation* CVehicleModelInfo::ms_vehicleDescs = (RwObjectNameIdAs
 RwTexture* MyVehicleModelInfo::ms_pMyLightsTexture;
 RwTexture* MyVehicleModelInfo::ms_pMyLightsOnTexture;
 VehicleLightData MyVehicleModelInfo::VehLightStatus;
+int MyVehicleModelInfo::CurrentDirtLevel = 0;
 
 void MyVehicleModelInfo::Implement()
 {
@@ -38,14 +39,16 @@ RpMaterial* MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, voi
 {
 	tRestoreEntry** pEntries = (tRestoreEntry**)data;
 	int LightID = -1;
-	//int MaterialColor = *(int*)&material->color & 0xFFFFFF;
-	CRGBA MaterialColor = material->color;
-	CRGBA MaterialColor2 = *(int*)&material->color & 0xFFFFFF;
-	CRGBA MColor = material->color;
+	CRGBA MColor;
 	int LighttextureType = 0;
 	LightState LightStatus = LIGHT_OFF;
 
-	if (ms_pRemapTexture && material && RpMaterialGetTexture(material) && material->texture->name[0] == '#')
+	if (material)
+		MColor = material->color;
+	else
+		return material;
+
+	if (ms_pRemapTexture  && RpMaterialGetTexture(material) && material->texture->name[0] == '#')
 	{
 		(*pEntries)->Address = &material->texture;
 		(*pEntries)->value = *(int*)material->texture;
@@ -53,13 +56,15 @@ RpMaterial* MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, voi
 		material->texture = (RwTexture*)ms_pRemapTexture->raster;
 	}
 
+	if(material && material->texture != nullptr)
+		SetDirtTextures(material, CurrentDirtLevel);
+
 	if (material->texture != nullptr && material->texture == ms_pLightsTexture)
 		LighttextureType = 1;
 	else if (ms_pMyLightsTexture != nullptr && material->texture == ms_pMyLightsTexture)
 		LighttextureType = 2;
 	else
 		LighttextureType = 0;
-
 	
 	if (LighttextureType)
 	{
@@ -105,11 +110,11 @@ RpMaterial* MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, voi
 		else if (MColor.r == 255 && MColor.g == 59 && MColor.b == 0) //Right Brakelight
 			LightStatus = VehLightStatus.BrakelightR;
 
-		else if (MColor.r == 0 && MColor.g == 255 && MColor.b == 198) //Left ReverseLight
-			LightStatus = VehLightStatus.ReverselightL;
-
-		else if (MColor.r == 255 && MColor.g == 173 && MColor.b == 0) //Right ReverseLight
+		else if (MColor.r == 0 && MColor.g == 255 && MColor.b == 198) //Right ReverseLight
 			LightStatus = VehLightStatus.ReverselightR;
+
+		else if (MColor.r == 255 && MColor.g == 173 && MColor.b == 0) //Left ReverseLight
+			LightStatus = VehLightStatus.ReverselightL;
 
 		(*pEntries)->Address = &material->color;
 		(*pEntries)->value = *(int*)&material->color;
@@ -119,12 +124,10 @@ RpMaterial* MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, voi
 		material->color.green = 255;
 
 
-	
-
 		if (LightStatus == LIGHT_BROKEN && material->color.alpha < 255)
 			material->color.alpha = 0;
 
-		if (LightStatus != LIGHT_OFF)
+		if (LightStatus != LIGHT_OFF && LightStatus != LIGHT_BROKEN)
 		{
 			(*pEntries)->Address = &material->texture;
 			(*pEntries)->value = (int)material->texture;
@@ -150,8 +153,6 @@ RpMaterial* MyVehicleModelInfo::SetEditableMaterialsCB(RpMaterial* material, voi
 				material->texture = ms_pLightsOnTexture;
 			else if (LighttextureType == 2)
 				material->texture = ms_pMyLightsOnTexture;
-
-			
 		}
 	}
 	else
@@ -224,6 +225,13 @@ void MyVehicleModelInfo::SetDirtTextures(RpMaterial* Material, int Dirtlevel)
 		}
 			
 
+		if (!ms_pRemapTexture && texName[0] == '#')
+		{
+			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures_6[Dirtlevel]);
+			Material->texture->name[0] = '#';
+			SetDirtShininess(Material, Dirtlevel, 0.027f, 0.01f);
+		}
+
 		if (strcmp(texName, "generic_glasswindows2") == 0)
 			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures_3[Dirtlevel]);
 
@@ -236,7 +244,7 @@ void MyVehicleModelInfo::SetDirtTextures(RpMaterial* Material, int Dirtlevel)
 		if (strcmp(texName, "vehicle_generic_detail") == 0)
 		{
 			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures_5[Dirtlevel]);
-			SetDirtShininess(Material, Dirtlevel, 0.15f,0.03f);
+			SetDirtShininess(Material, Dirtlevel, 0.18f,0.03f);
 		}
 
 	}
@@ -245,11 +253,9 @@ void MyVehicleModelInfo::SetDirtTextures(RpMaterial* Material, int Dirtlevel)
 void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, int Dirtlevel)
 {
 	const int MaxNumDirtMats = 32;
-	RpClump* clump = reinterpret_cast<RpClump*>(modelInfo->m_pRwObject);
+	RpClump* clump = reinterpret_cast<RpClump*>(modelInfo->m_pRwClump);
 	RpAtomic* atomic;
 	RpGeometry* Geometry;
-	RwTexture* texture = nullptr;
-	const char* texName = "";
 
 	for (RwLLLink* link = rwLinkListGetFirstLLLink(&clump->atomicList); link != rwLinkListGetTerminator(&clump->atomicList); link = rwLLLinkGetNext(link))
 	{
@@ -264,8 +270,7 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 		}
 	}
 
-	texture = nullptr;
-	texName = "";
+
 	for (uint32_t i = 0; i < modelInfo->m_pVehicleStruct->m_nNumExtras; i++)
 	{
 		Geometry = modelInfo->m_pVehicleStruct->m_apExtras[i]->geometry;
@@ -279,6 +284,7 @@ void MyVehicleModelInfo::FindEditableMaterialList(CVehicleModelInfo* modelInfo, 
 
 void MyVehicleModelInfo::RemapDirt(CVehicleModelInfo* modelInfo, int DirtLevel)
 {
-	FindEditableMaterialList(modelInfo, DirtLevel);  //takes only 0.005ms so its fineeeee 
+	//FindEditableMaterialList(modelInfo,DirtLevel);  
+	//We just do it now n SetEditableMaterials. It goes through all of them anyway
 }
 

@@ -39,7 +39,7 @@ void MyMisc::Implement()
 
 
 	//// Motion Blur Alpha reduced
-	patch::SetUInt(0x8D5104, 15);
+    patch::SetUInt(0x8D5104, 10);
 
 	static float G_ShadowsHeight = 0.07;
 	patch::Set(0x709B2D + 2, &G_ShadowsHeight);
@@ -68,9 +68,9 @@ void MyMisc::PatchShadowDrawDistances()
 	//Corona Shadow Distances i.e. Light on ground
 	patch::SetFloat(0x6FD3A6, TheCamera.m_fLODDistMultiplier * 80.0f);
 	patch::SetFloat(0x6FD44F, TheCamera.m_fLODDistMultiplier * 80.0f);
-
-
-
+	
+	
+	
 	//ToDO: 
 	//Vehicle Shadows, Pole shadows, Headlightshadows(we may implement that one completely new in vehicle DoLights)
 }

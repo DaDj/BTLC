@@ -45,7 +45,7 @@ void MyCarFxRender::MyShutdown()
 		RwTextureDestroy(ms_aDirtTextures_3[i]);
 		RwTextureDestroy(ms_aDirtTextures_4[i]);
 		RwTextureDestroy(ms_aDirtTextures_5[i]);
-		//RwTextureDestroy(ms_aDirtTextures_6[i]);
+		RwTextureDestroy(ms_aDirtTextures_6[i]);
 	}
 }
 
@@ -137,12 +137,10 @@ void MyCarFxRender::InitialiseDirtTextureSingle(char* name, RwTexture** dirtText
 void MyCarFxRender::InitialiseDirtTextures()
 {
 	//InitialiseDirtTexture();
-
 	//Dirt Textures which blend to white
 	InitialiseDirtTextureSingle((char*)"vehiclegrunge256", ms_aDirtTextures);
-
-	//Dirt Textures which blend to white
 	InitialiseDirtTextureSingle((char*)"vehiclegrunge_iv", ms_aDirtTextures_2);
+	InitialiseDirtTextureSingle((char*)"vehiclegrungebtlc", ms_aDirtTextures_6);
 
 	//Textures which belnd between two images
 	InitialiseBlendTextureSingle((char*)"generic_glasswindows2", (char*)"generic_glasswindows2_d", ms_aDirtTextures_3);
