@@ -8,6 +8,7 @@ RwTexture* MyVehicleModelInfo::ms_pMyLightsTexture;
 RwTexture* MyVehicleModelInfo::ms_pMyLightsOnTexture;
 VehicleLightData MyVehicleModelInfo::VehLightStatus;
 int MyVehicleModelInfo::CurrentDirtLevel = 0;
+bool MyVehicleModelInfo::ReplaceRemap;
 
 void MyVehicleModelInfo::Implement()
 {
@@ -15,7 +16,6 @@ void MyVehicleModelInfo::Implement()
 	//Patch New Dirt Materials
 	patch::RedirectJump(0x5D5DB0, MyVehicleModelInfo::RemapDirt);
 	patch::RedirectCall(0x4C9648, &MyVehicleModelInfo::EmptyFindMats);
-	//patch::RedirectCall(0x4C8414, &MyVehicleModelInfo::SetEditableMaterialsCB);
 	patch::RedirectJump(0x4C8220, &MyVehicleModelInfo::SetEditableMaterialsCB);
 }
 
@@ -225,7 +225,7 @@ void MyVehicleModelInfo::SetDirtTextures(RpMaterial* Material, int Dirtlevel)
 		}
 			
 
-		if (!ms_pRemapTexture && texName[0] == '#')
+		if (ReplaceRemap && !ms_pRemapTexture && texName[0] == '#')
 		{
 			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures_6[Dirtlevel]);
 			Material->texture->name[0] = '#';
@@ -244,7 +244,7 @@ void MyVehicleModelInfo::SetDirtTextures(RpMaterial* Material, int Dirtlevel)
 		if (strcmp(texName, "vehicle_generic_detail") == 0)
 		{
 			RpMaterialSetTexture(Material, MyCarFxRender::ms_aDirtTextures_5[Dirtlevel]);
-			SetDirtShininess(Material, Dirtlevel, 0.18f,0.03f);
+			SetDirtShininess(Material, Dirtlevel, 0.17f,0.03f);
 		}
 
 	}

@@ -233,6 +233,20 @@ void MyVehicle::SetupRender(CVehicle* TheVehicle)
 	//	MyVehicle::DoVehicleLights(TheVehicle);
 	MyVehicleModelInfo::VehLightStatus = MyCustomVehicle.Get(TheVehicle).LightData;
 	MyVehicleModelInfo::CurrentDirtLevel = TheVehicle->m_fDirtLevel;
+	MyVehicleModelInfo::ReplaceRemap = true;
+
+	//some models use remap not only for paintjob? weird stuff
+	if (TheVehicle->m_nModelIndex == MODEL_TAHOMA || 
+		TheVehicle->m_nModelIndex == MODEL_DUNERIDE || 
+		TheVehicle->m_nModelIndex == MODEL_TRASH || 
+		TheVehicle->m_nModelIndex == MODEL_HOTDOG ||
+		TheVehicle->m_nModelIndex == MODEL_MRWHOOP 
+		)
+	{
+		MyVehicleModelInfo::ReplaceRemap = false;
+	}
+	
+
 	TheVehicle->SetupRender();
 }
 

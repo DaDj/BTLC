@@ -71,6 +71,7 @@ public:
 	static RwTexture* ms_pMyLightsOnTexture;
 	static VehicleLightData VehLightStatus;
 	static int CurrentDirtLevel;
+	static bool ReplaceRemap;
 
 	static void Implement();
 	static RpMaterial* SetEditableMaterialsCB(RpMaterial* material, void* data);

@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\source\Main.cpp" />
+    <ClCompile Include="..\source\MyCarFxRender.cpp" />
+    <ClCompile Include="..\source\MyDebug.cpp" />
+    <ClCompile Include="..\source\MyEntity.cpp" />
+    <ClCompile Include="..\source\MyFileMgr.cpp" />
+    <ClCompile Include="..\source\MyHud.cpp" />
+    <ClCompile Include="..\source\MyMisc.cpp" />
+    <ClCompile Include="..\source\MyObjectData.cpp" />
+    <ClCompile Include="..\source\MyRadar.cpp" />
+    <ClCompile Include="..\source\MyVehicle.cpp" />
+    <ClCompile Include="..\source\MyVehicleModelInfo.cpp" />
+    <ClCompile Include="..\source\MyWeather.cpp" />
+    <ClCompile Include="..\source\RWExtend.cpp" />
+    <ClCompile Include="..\source\Fx\MyFxInfoGroundCollide.cpp">
+      <Filter>Fx</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\source\MemoryMgr.h" />
+    <ClInclude Include="..\source\MyCarFxRender.h" />
+    <ClInclude Include="..\source\MyDebug.h" />
+    <ClInclude Include="..\source\MyEntity.h" />
+    <ClInclude Include="..\source\MyFileMgr.h" />
+    <ClInclude Include="..\source\MyHud.h" />
+    <ClInclude Include="..\source\MyMisc.h" />
+    <ClInclude Include="..\source\MyObjectData.h" />
+    <ClInclude Include="..\source\MyRadar.h" />
+    <ClInclude Include="..\source\MyVehicle.h" />
+    <ClInclude Include="..\source\MyVehicleModelInfo.h" />
+    <ClInclude Include="..\source\MyWeather.h" />
+    <ClInclude Include="..\source\RWExtend.h" />
+    <ClInclude Include="..\source\utils.h" />
+    <ClInclude Include="..\source\Fx\MyFxInfoGroundCollide.h">
+      <Filter>Fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Fx\eFxInfoType.h">
+      <Filter>Fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Fx\EmissionInfo.h">
+      <Filter>Fx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Fx\MovementInfo.h">
+      <Filter>Fx</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Fx">
+      <UniqueIdentifier>{cb608b1a-14e5-4828-94cd-4f03b856e7e6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
