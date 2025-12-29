@@ -10,9 +10,9 @@ void MyMisc::Implement()
 	patch::Set(0x55E870, 0xC2C03366);
 	patch::Set(0x55E874, 0x0004);
 
-
+	injector::WriteMemory<uint8_t>(0x63E8DF, 0xEB, true);
 	//Disable "To stop Carl..." message.
-	patch::Set(0x63E8DF, 0xEB);
+	//patch::Set(0x63E8DF, 0xEB);
 
 	//Disable Replays
 	patch::Set(0x460390, 0xC3);
@@ -41,7 +41,7 @@ void MyMisc::Implement()
 	//// Motion Blur Alpha reduced
     patch::SetUInt(0x8D5104, 10);
 
-	static float G_ShadowsHeight = 0.07;
+	static float G_ShadowsHeight = 0.1;
 	patch::Set(0x709B2D + 2, &G_ShadowsHeight);
 	patch::Set(0x709B8C + 2, &G_ShadowsHeight);
 	patch::Set(0x709BC5 + 2, &G_ShadowsHeight);
@@ -60,6 +60,10 @@ void MyMisc::Implement()
 	patch::Set(0x7085A7 + 2, &G_ShadowsHeight);
 
 	patch::SetFloat(0x8CD4F0, 50.0f);
+
+
+	//Allow armed running.
+	injector::WriteMemory<const char*>(&((char**)CAnimManager::ms_aAnimAssocDefinitions[60].animNames)[2], "sprint_armed", true);
 
 }
 
